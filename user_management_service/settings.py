@@ -52,7 +52,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'user_management_service.wsgi.application'
+WSGI_APPLICATION = 'user-management-service.wsgi.application'
 
 # --- Database ---
 DATABASES = {
