@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-management-config
+  labels:
+    app: user-management-service
+data:
+  TIMELINE_LOG_QUEUE: "timelog_list_queue"
+  TIMELOG_PROCESSING_QUEUE: "timelog_processing_queue"
+  EMPLOYEE_TIMELOG_LIST_QUEUE: "employee_timelog_list_queue"
+  PTO_UPDATE_QUEUE: "pto_update_processing_queue"
+  USER_PTO_QUEUE: "user_pto_queue"
+  TIMELOG_UPDATE_QUEUE: "timelog_update_queue"
+  DASHBOARD_QUEUE: "dashboard_queue"
+  REGION: "us-east-2"
+  DJANGO_DEBUG: "False"
+  DJANGO_ALLOWED_HOSTS: "user-management-service,user-mgmt,localhost"
+  DB_ENGINE: "django.db.backends.postgresql"
+  DB_NAME: "user_mgmt_db"
+  DB_HOST: "user-mgmt-db"
+  DB_PORT: "5432"
+  LOG_GROUP_MAIN: "user-mgmt-group"
+  STREAM_NAME_MAIN: "user-mgmt-stream"

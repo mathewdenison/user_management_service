@@ -196,19 +196,26 @@ class TimeLogListView(APIView):
 
 class SubmitTimeLogView(APIView):
     def post(self, request, *args, **kwargs):
-        # Make sure the incoming request has data
         if request.data is None:
-            return Response(
-                {
-                    "message": "Request data cannot be empty.",
-                },
-                status=400,
-            )
+            return Response({"message": "Request data cannot be empty."}, status=400)
 
-        # Send the incoming request data to the queue for the time log management service
         message_body = json.dumps(request.data)
-        """FIXME Update the queue name to be an environment variable"""
+
+        # Send to timelog service
         message_id = send_message_to_queue('timelog_processing_queue', message_body, 'POST')
+
+        # Send dashboard update payload to dashboard_queue
+        dashboard_payload = {
+            "employee_id": request.data.get("employee"),
+            "type": "timelog_submitted",
+            "payload": {
+                "week_start_date": request.data.get("week_start_date"),
+                "pto_hours": request.data.get("pto_hours"),
+                "employee_id": request.data.get("employee"),
+            },
+        }
+
+        send_message_to_queue('dashboard_queue', dashboard_payload, 'POST')
 
         return Response(
             {
@@ -254,28 +261,34 @@ class PTOUpdateView(APIView):
     permission_classes = [IsManagerOrHR]
 
     def patch(self, request, employee_id):
-        # Ensure only HR role can update PTO balances
         if self.request.user.employee.role != 'HR':
             return Response({"error": "Only HR can update PTO balance."}, status=403)
+
         try:
             employee = Employee.objects.get(pk=employee_id)
         except Employee.DoesNotExist:
             return Response({"error": "Employee not found."}, status=404)
 
-        # Fetch new_balance
         new_balance = request.data.get("pto_balance")
         if new_balance is None:
             return Response({"error": "PTO balance is required."}, status=400)
 
-        # Prepare data to be sent to queue
         queue_data = {
             "employee_id": employee_id,
             "new_balance": new_balance,
         }
 
-        # Send data to queue for further processing in PTO Update Processing Service
-        """FIXME Update the queue name to be an environment variable"""
         message_id = send_message_to_queue('pto_update_processing_queue', queue_data, 'PATCH')
+
+        # Send real-time update to dashboard
+        dashboard_payload = {
+            "employee_id": employee_id,
+            "type": "pto_updated",
+            "payload": {
+                "pto_balance": new_balance
+            },
+        }
+        send_message_to_queue('dashboard_queue', dashboard_payload, 'POST')
 
         return Response(
             {
