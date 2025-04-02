@@ -1,33 +1,31 @@
 import json
-
-import boto3
 import logging
-from watchtower import CloudWatchLogHandler
+from google.cloud import pubsub_v1
+from google.cloud import logging as cloud_logging
 from dotenv import load_dotenv
 import os
 
 load_dotenv()
 
-log_group = os.getenv('LOG_GROUP_ASSOCIATE')
-stream_name = os.getenv('STREAM_NAME_ASSOCIATE')
+# Setup Google Cloud Logging
+client = cloud_logging.Client()
+client.setup_logging()
 
-cw_handler = CloudWatchLogHandler(log_group=log_group, stream_name=stream_name)
+# Setup Google Cloud Pub/Sub
+publisher = pubsub_v1.PublisherClient()
+subscriber = pubsub_v1.SubscriberClient()
+
+# GCP Pub/Sub topic and subscription names (replace with actual values)
+topic_name = os.getenv('PUBSUB_TOPIC')
+subscription_name = os.getenv('PUBSUB_SUBSCRIPTION')
+
+# Logger setup
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-logger.addHandler(cw_handler)
-logger.propagate = False
 
-"""FIXME change this to be a environment variable or k8 secret"""
-QUEUE_URL = "https://sqs.us-east-2.amazonaws.com/050451366043/Hopkins_EP_Queue"
-sqs_client = boto3.client("sqs", region_name="us-east-2")
-
-
-def send_message_to_queue(queue_name, data, method):
+# Function to send messages to GCP Pub/Sub
+def send_message_to_topic(topic_name, data, method):
     try:
-        # Get queue URL
-        response = sqs_client.get_queue_url(QueueName=queue_name)
-        queue_url = response['QueueUrl']
-
         # Delay mapping
         delay_seconds = {
             'POST': 0,
@@ -36,63 +34,60 @@ def send_message_to_queue(queue_name, data, method):
             'DELETE': 15,
         }.get(method.upper(), 0)
 
-        # Attributes for message metadata
-        attributes = {
-            'method': {
-                'DataType': 'String',
-                'StringValue': method,
-            },
-            'delay_seconds': {
-                'DataType': 'Number',
-                'StringValue': str(delay_seconds),
-            },
-        }
-
         # Log the intent with context
         type_info = data.get('type') if isinstance(data, dict) else None
         if type_info:
-            logger.info(f"Sending message of type '{type_info}' to queue '{queue_name}'")
+            logger.info(f"Sending message of type '{type_info}' to topic '{topic_name}'")
 
-        logger.info(f"Queue: {queue_name}, Method: {method}, Payload: {str(data)[:300]}")
+        logger.info(f"Topic: {topic_name}, Method: {method}, Payload: {str(data)[:300]}")
 
-        # Send message
-        response = sqs_client.send_message(
-            QueueUrl=queue_url,
-            MessageBody=json.dumps(data),  # Will raise if not serializable
-            DelaySeconds=delay_seconds,
-            MessageAttributes=attributes
+        # Publish message to the topic
+        future = publisher.publish(
+            f'projects/{os.getenv("GCP_PROJECT_ID")}/topics/{topic_name}',
+            data=json.dumps(data).encode('utf-8'),
+            method=method,
+            delay_seconds=delay_seconds
         )
 
-        logger.info(f"Message sent to {queue_name}. Message ID: {response['MessageId']}")
-        return response['MessageId']
+        # Get the message ID
+        message_id = future.result()
+        logger.info(f"Message sent to {topic_name}. Message ID: {message_id}")
+        return message_id
 
     except Exception as e:
-        logger.exception(f"Error sending message to SQS queue {queue_name}: {e}")
+        logger.exception(f"Error sending message to Pub/Sub topic {topic_name}: {e}")
         return None
 
 
-
-def delete_message_from_queue(receipt_handle):
-    sqs_client.delete_message(
-        QueueUrl=QUEUE_URL,
-        ReceiptHandle=receipt_handle
+# Function to receive messages from the Pub/Sub subscription
+def receive_messages_from_subscription(subscription_name):
+    """Receive messages from the Pub/Sub subscription."""
+    subscription_path = subscriber.subscription_path(
+        os.getenv("GCP_PROJECT_ID"), subscription_name
     )
 
-def receive_messages_from_queue():
-    """Receive messages from the SQS queue."""
-    response = sqs_client.receive_message(
-        QueueUrl=QUEUE_URL,
-        MaxNumberOfMessages=10,
-        WaitTimeSeconds=10
-    )
-    messages = response.get("Messages", [])
-    logger.info(f"Received {len(messages)} messages from queue.")
+    # Pull the messages
+    response = subscriber.pull(subscription_path, max_messages=10, return_immediately=True)
+
+    messages = response.received_messages
+    logger.info(f"Received {len(messages)} messages from subscription.")
     return messages
 
 
-def consume_message_from_queue(queue_url):
-    messages = receive_messages_from_queue(queue_url)
+# Function to acknowledge message after processing
+def acknowledge_message(subscription_name, ack_id):
+    """Acknowledge the message so it can be removed from the subscription."""
+    subscription_path = subscriber.subscription_path(
+        os.getenv("GCP_PROJECT_ID"), subscription_name
+    )
+    subscriber.acknowledge(subscription_path, [ack_id])
+
+
+# Function to process and delete messages from the Pub/Sub queue
+def consume_message_from_subscription(subscription_name):
+    messages = receive_messages_from_subscription(subscription_name)
     for message in messages:
-        msg_body = json.loads(message['Body'])
-        delete_message_from_queue(message['ReceiptHandle'])
+        msg_body = json.loads(message.message.data.decode("utf-8"))
+        # Acknowledge the message
+        acknowledge_message(subscription_name, message.ack_id)
     return
