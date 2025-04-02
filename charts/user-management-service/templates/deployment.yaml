@@ -23,6 +23,6 @@ spec:
               protocol: TCP
           envFrom:
             - configMapRef:
-                name: user-mgmt-config
+                name: user-management-config
             - secretRef:
-                name: user-mgmt-secrets
+                name: user-management-secrets
