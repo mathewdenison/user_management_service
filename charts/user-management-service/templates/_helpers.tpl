@@ -1,7 +1,7 @@
-{{- define "user_management_service.name" -}}
+{{- define "user-management-service.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
 {{- end }}
 
-{{- define "user_management_service.fullname" -}}
-{{- printf "%s-%s" .Release.Name (include "user_management_service.name" .) | trunc 63 | trimSuffix "-" -}}
+{{- define "user-management-service.fullname" -}}
+{{- printf "%s-%s" .Release.Name (include "user-management-service.name" .) | trunc 63 | trimSuffix "-" -}}
 {{- end }}

@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "user_management_service.fullname" . }}
+  name: {{ include "user-management-service.fullname" . }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ include "user_management_service.name" . }}
+      app: {{ include "user-management-service.name" . }}
   template:
     metadata:
       labels:
-        app: {{ include "user_management_service.name" . }}
+        app: {{ include "user-management-service.name" . }}
     spec:
       serviceAccountName: eks-apps-service-account
       containers:

@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "user_management_service.name" . }}
+  name: {{ include "user-management-service.name" . }}
 spec:
   type: {{ .Values.service.type }}
   ports:
     - port: {{ .Values.service.port }}
       targetPort: http
   selector:
-    app: {{ include "user_management_service.name" . }}
+    app: {{ include "user-management-service.name" . }}
