@@ -1,7 +1,7 @@
 replicaCount: 3
 
 image:
-  repository: your-docker-hub-id/your-image-name
+  repository: gcr.io/hopkinstimesheetproj/user-management-service
   tag: latest
   pullPolicy: IfNotPresent
 
