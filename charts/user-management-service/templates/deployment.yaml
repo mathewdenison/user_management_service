@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "user-management-service.fullname" . }}
+  name: user-management-service
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ include "user-management-service.name" . }}
+      app: user-management-service
   template:
     metadata:
       labels:
-        app: {{ include "user-management-service.name" . }}
+        app: user-management-service
     spec:
       serviceAccountName: eks-apps-service-account
       containers:
-        - name: {{ .Chart.Name }}
+        - name: user-management-service
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
