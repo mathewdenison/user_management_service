@@ -9,7 +9,7 @@ from rest_framework.decorators import api_view
 from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.permissions import AllowAny
-from management.utils import send_message_to_queue
+from utils import send_message_to_topic
 from django.middleware.csrf import get_token
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
@@ -183,7 +183,7 @@ class TimeLogListView(APIView):
 
         # Send data to queue for further processing
         """FIXME Update the queue name to be an environment variable"""
-        message_id = send_message_to_queue('timelog_list_queue', queue_data, 'GET')
+        message_id = send_message_to_topic('timelog_list_queue', queue_data, 'GET')
 
         return Response(
             {
@@ -202,7 +202,7 @@ class SubmitTimeLogView(APIView):
         message_body = json.dumps(request.data)
 
         # Send to timelog service
-        message_id = send_message_to_queue('timelog_processing_queue', message_body, 'POST')
+        message_id = send_message_to_topic('timelog_processing_queue', message_body, 'POST')
 
         # Send dashboard update payload to dashboard_queue
         dashboard_payload = {
@@ -215,7 +215,7 @@ class SubmitTimeLogView(APIView):
             },
         }
 
-        send_message_to_queue('dashboard_queue', dashboard_payload, 'POST')
+        send_message_to_topic('dashboard_queue', dashboard_payload, 'POST')
 
         return Response(
             {
@@ -246,7 +246,7 @@ class EmployeeTimeLogsView(APIView):
 
         # Send data to queue for further processing in TimeLog Management Service
         """FIXME Update the queue name to be an environment variable"""
-        message_id = send_message_to_queue('employee_timelog_list_queue', queue_data, 'GET')
+        message_id = send_message_to_topic('employee_timelog_list_queue', queue_data, 'GET')
 
         return Response(
             {
@@ -278,7 +278,7 @@ class PTOUpdateView(APIView):
             "new_balance": new_balance,
         }
 
-        message_id = send_message_to_queue('pto_update_processing_queue', queue_data, 'PATCH')
+        message_id = send_message_to_topic('pto_update_processing_queue', queue_data, 'PATCH')
 
         # Send real-time update to dashboard
         dashboard_payload = {
@@ -288,7 +288,7 @@ class PTOUpdateView(APIView):
                 "pto_balance": new_balance
             },
         }
-        send_message_to_queue('dashboard_queue', dashboard_payload, 'POST')
+        send_message_to_topic('dashboard_queue', dashboard_payload, 'POST')
 
         return Response(
             {
@@ -335,7 +335,7 @@ class GetPTOView(APIView):
 
         # Send data to queue for further processing
         """FIXME Update the queue name to be an environment variable"""
-        message_id = send_message_to_queue('user_pto_queue', queue_data, 'GET')
+        message_id = send_message_to_topic('user_pto_queue', queue_data, 'GET')
 
         return Response(
             {
@@ -381,7 +381,7 @@ class TimeLogUpdateView(APIView):
 
         # Send data to queue for further processing in TimeLog Update Service
         """FIXME Update the queue name to be an environment variable"""
-        message_id = send_message_to_queue('timelog_update_queue', queue_data, 'PATCH')
+        message_id = send_message_to_topic('timelog_update_queue', queue_data, 'PATCH')
 
         return Response(
             {
