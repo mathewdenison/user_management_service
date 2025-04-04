@@ -14,7 +14,7 @@ data:
   DASHBOARD_QUEUE: "dashboard_queue"
   REGION: "us-east-2"
   DJANGO_DEBUG: "False"
-  DJANGO_ALLOWED_HOSTS: "pto-service.default.svc.cluster.local,localhost"
+  DJANGO_ALLOWED_HOSTS: "pto-service.default.svc.cluster.local,localhost,192.168.56.1"
   DB_HOST: "34.170.80.212"
   DB_PORT: "5432"
   DB_ENGINE: "django.db.backends.postgresql"
