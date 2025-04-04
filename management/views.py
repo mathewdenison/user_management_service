@@ -9,7 +9,7 @@ from rest_framework.decorators import api_view
 from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.permissions import AllowAny
-from utils import send_message_to_topic
+from .utils import send_message_to_topic
 from django.middleware.csrf import get_token
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
