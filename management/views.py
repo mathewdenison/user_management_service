@@ -17,7 +17,7 @@ from .forms import EmployeeUserForm, EmployeeForm
 from django.contrib.auth.decorators import login_required
 from datetime import timedelta
 import logging
-from watchtower import CloudWatchLogHandler
+from google.cloud import logging as cloud_logging
 from rest_framework import status
 from dotenv import load_dotenv
 from rest_framework.response import Response
@@ -32,10 +32,12 @@ load_dotenv()
 log_group = os.getenv('LOG_GROUP_MAIN')
 stream_name = os.getenv('STREAM_NAME_MAIN')
 
-cw_handler = CloudWatchLogHandler(log_group=log_group, stream_name=stream_name)
+client = cloud_logging.Client()
+client.setup_logging()
+
+# Logger setup
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-logger.addHandler(cw_handler)
 logger.propagate = False
 
 
