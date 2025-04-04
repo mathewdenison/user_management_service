@@ -10,7 +10,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # --- Security ---
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'insecure-default-key')  # Use a strong key in secrets!
 DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
-ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', '').split(',') if os.getenv('DJANGO_ALLOWED_HOSTS') else []
+ALLOWED_HOSTS = ['*']
 
 # --- Applications ---
 INSTALLED_APPS = [
