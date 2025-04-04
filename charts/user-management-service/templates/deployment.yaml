@@ -14,7 +14,8 @@ spec:
     spec:
       initContainers:
         - name: migrate
-          image: gcr.io/hopkinstimesheetproj/user-management-service:latest
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           command:
             - "python"
             - "manage.py"
