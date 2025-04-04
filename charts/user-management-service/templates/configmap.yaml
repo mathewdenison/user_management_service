@@ -21,3 +21,6 @@ data:
   TIME_ZONE: "America/New_York"
   LOG_GROUP_MAIN: "user-mgmt-group"
   STREAM_NAME_MAIN: "user-mgmt-stream"
+  DB_NAME: "timesheet-db"
+  DB_USER: "postgres"
+  DB_PASSWORD: "timesheetpassword"
