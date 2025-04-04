@@ -6,4 +6,4 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Employee
-        fields = ['id', 'user', 'name', 'role', 'department', 'pto_balance']
+        fields = ['id', 'user', 'name', 'role', 'department']  # Removed pto_balance

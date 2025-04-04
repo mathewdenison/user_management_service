@@ -12,6 +12,8 @@ class EmployeeUserForm(forms.ModelForm):
 
 
 class EmployeeForm(forms.ModelForm):
+    user = forms.ModelChoiceField(queryset=User.objects.all())  # Include the user field
+
     class Meta:
         model = Employee
-        fields = ('name', 'role', 'department', 'pto_balance')
+        fields = ('user', 'name', 'role', 'department')  # Removed pto_balance
