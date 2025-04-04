@@ -57,10 +57,10 @@ WSGI_APPLICATION = 'user_management_service.wsgi.application'
 # --- Database ---
 DATABASES = {
     'default': {
-        'ENGINE': os.environ.get("django.db.backends.postgresql"),
-        'NAME': os.environ.get("timesheet-db"),
-        'USER': os.environ.get("postgres"),
-        'PASSWORD': os.environ.get("timesheetpassword"),
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'timesheet-db',
+        'USER': 'postgres',
+        'PASSWORD': 'timesheetpassword',
         'HOST': os.environ.get("DB_HOST"),
         'PORT': os.environ.get("DB_PORT"),
     }
