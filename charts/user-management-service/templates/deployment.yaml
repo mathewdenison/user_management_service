@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: user-management-service
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: 1
   selector:
     matchLabels:
       app: user-management-service
@@ -12,7 +12,18 @@ spec:
       labels:
         app: user-management-service
     spec:
-      serviceAccountName: eks-apps-service-account
+      initContainers:
+        - name: migrate
+          image: gcr.io/hopkinstimesheetproj/user-management-service:latest
+          command:
+            - "python"
+            - "manage.py"
+            - "migrate"
+          envFrom:
+            - configMapRef:
+                name: user-management-config
+            - secretRef:
+                name: user-management-secrets
       containers:
         - name: user-management-service
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -26,3 +37,4 @@ spec:
                 name: user-management-config
             - secretRef:
                 name: user-management-secrets
+
