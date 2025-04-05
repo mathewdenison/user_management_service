@@ -41,15 +41,13 @@ def send_message_to_topic(topic_name, data, method):
 
         logger.info(f"Topic: {topic_name}, Method: {method}, Payload: {str(data)[:300]}")
 
-        # Publish message to the topic
         future = publisher.publish(
             f'projects/{os.getenv("GCP_PROJECT_ID")}/topics/{topic_name}',
             data=json.dumps(data).encode('utf-8'),
-            method=method,
-            delay_seconds=delay_seconds
+            method=str(method),
+            delay_seconds=str(delay_seconds)
         )
 
-        # Get the message ID
         message_id = future.result()
         logger.info(f"Message sent to {topic_name}. Message ID: {message_id}")
         return message_id
@@ -58,36 +56,26 @@ def send_message_to_topic(topic_name, data, method):
         logger.exception(f"Error sending message to Pub/Sub topic {topic_name}: {e}")
         return None
 
-
 # Function to receive messages from the Pub/Sub subscription
 def receive_messages_from_subscription(subscription_name):
-    """Receive messages from the Pub/Sub subscription."""
     subscription_path = subscriber.subscription_path(
         os.getenv("GCP_PROJECT_ID"), subscription_name
     )
-
-    # Pull the messages
     response = subscriber.pull(subscription_path, max_messages=10, return_immediately=True)
-
     messages = response.received_messages
     logger.info(f"Received {len(messages)} messages from subscription.")
     return messages
 
-
 # Function to acknowledge message after processing
 def acknowledge_message(subscription_name, ack_id):
-    """Acknowledge the message so it can be removed from the subscription."""
     subscription_path = subscriber.subscription_path(
         os.getenv("GCP_PROJECT_ID"), subscription_name
     )
     subscriber.acknowledge(subscription_path, [ack_id])
-
 
 # Function to process and delete messages from the Pub/Sub queue
 def consume_message_from_subscription(subscription_name):
     messages = receive_messages_from_subscription(subscription_name)
     for message in messages:
         msg_body = json.loads(message.message.data.decode("utf-8"))
-        # Acknowledge the message
         acknowledge_message(subscription_name, message.ack_id)
-    return
