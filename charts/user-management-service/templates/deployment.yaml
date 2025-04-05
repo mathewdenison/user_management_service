@@ -12,6 +12,8 @@ spec:
       labels:
         app: user-management-service
     spec:
+      nodeSelector:
+        pubsub: "true"
       initContainers:
         - name: migrate
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
