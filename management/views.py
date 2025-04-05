@@ -204,7 +204,7 @@ class SubmitTimeLogView(APIView):
         message_body = json.dumps(request.data)
 
         # Send to timelog service
-        message_id = send_message_to_topic('timelog_processing_queue', message_body, 'POST')
+        message_id = send_message_to_topic('timelog-processing-queue', message_body, 'POST')
 
         # Send dashboard update payload to dashboard-queue
         dashboard_payload = {

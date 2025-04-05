@@ -6,7 +6,7 @@ metadata:
     app: user-management-service
 data:
   TIMELINE_LOG_QUEUE: "timelog_list_queue"
-  TIMELOG_PROCESSING_QUEUE: "timelog_processing_queue"
+  timelog-processing-queue: "timelog-processing-queue"
   EMPLOYEE_TIMELOG_LIST_QUEUE: "employee_timelog_list_queue"
   PTO_UPDATE_QUEUE: "pto_update_processing_queue"
   USER_PTO_QUEUE: "user_pto_queue"
