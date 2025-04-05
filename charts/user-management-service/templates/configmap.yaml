@@ -11,7 +11,7 @@ data:
   PTO_UPDATE_QUEUE: "pto_update_processing_queue"
   USER_PTO_QUEUE: "user_pto_queue"
   TIMELOG_UPDATE_QUEUE: "timelog_update_queue"
-  DASHBOARD_QUEUE: "dashboard_queue"
+  dashboard-queue: "dashboard-queue"
   REGION: "us-east-2"
   DJANGO_DEBUG: "False"
   DJANGO_ALLOWED_HOSTS: "pto-service.default.svc.cluster.local,localhost,192.168.56.1"

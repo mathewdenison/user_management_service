@@ -206,7 +206,7 @@ class SubmitTimeLogView(APIView):
         # Send to timelog service
         message_id = send_message_to_topic('timelog_processing_queue', message_body, 'POST')
 
-        # Send dashboard update payload to dashboard_queue
+        # Send dashboard update payload to dashboard-queue
         dashboard_payload = {
             "employee_id": request.data.get("employee"),
             "type": "timelog_submitted",
@@ -217,7 +217,7 @@ class SubmitTimeLogView(APIView):
             },
         }
 
-        send_message_to_topic('dashboard_queue', dashboard_payload, 'POST')
+        send_message_to_topic('dashboard-queue', dashboard_payload, 'POST')
 
         return Response(
             {
@@ -290,7 +290,7 @@ class PTOUpdateView(APIView):
                 "pto_balance": new_balance
             },
         }
-        send_message_to_topic('dashboard_queue', dashboard_payload, 'POST')
+        send_message_to_topic('dashboard-queue', dashboard_payload, 'POST')
 
         return Response(
             {
