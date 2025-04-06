@@ -257,6 +257,7 @@ class PTOUpdateView(APIView):
     permission_classes = [IsManagerOrHR]
 
     def patch(self, request, employee_id):
+        # Only HR is allowed
         if self.request.user.employee.role != 'HR':
             return Response({"error": "Only HR can update PTO balance."}, status=403)
 
@@ -269,22 +270,17 @@ class PTOUpdateView(APIView):
         if new_balance is None:
             return Response({"error": "PTO balance is required."}, status=400)
 
+        # Only send message to the PTO service for actual update and logging
         queue_data = {
             "employee_id": employee_id,
-            "new_balance": new_balance,
+            "new_balance": new_balance
         }
 
-        message_id = send_message_to_topic('pto_update_processing_queue', queue_data, 'PATCH')
-
-        # Send real-time update to dashboard
-        dashboard_payload = {
-            "employee_id": employee_id,
-            "type": "pto_updated",
-            "payload": {
-                "pto_balance": new_balance
-            },
-        }
-        send_message_to_topic('dashboard-queue', dashboard_payload, 'POST')
+        message_id = send_message_to_topic(
+            'pto_update_processing_queue',
+            json.dumps(queue_data),  # Make sure message is JSON string
+            'PATCH'
+        )
 
         return Response(
             {
@@ -293,6 +289,7 @@ class PTOUpdateView(APIView):
             },
             status=200,
         )
+
 
 
 class CurrentWeekView(APIView):
