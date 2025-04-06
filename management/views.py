@@ -198,26 +198,20 @@ class TimeLogListView(APIView):
 
 class SubmitTimeLogView(APIView):
     def post(self, request, *args, **kwargs):
-        if request.data is None:
+        if not request.data:
             return Response({"message": "Request data cannot be empty."}, status=400)
 
-        message_body = json.dumps(request.data)
-
-        # Send to timelog service
-        message_id = send_message_to_topic('timelog-processing-queue', message_body, 'POST')
-
-        # Send dashboard update payload to dashboard-queue
-        dashboard_payload = {
-            "employee_id": request.data.get("employee"),
-            "type": "timelog_submitted",
-            "payload": {
-                "week_start_date": request.data.get("week_start_date"),
-                "pto_hours": request.data.get("pto_hours"),
-                "employee_id": request.data.get("employee"),
-            },
+        message_body = {
+            "employee": request.data.get("employee"),  # Ensure this matches what processing service expects
+            "week_start_date": request.data.get("week_start_date"),
+            "pto_hours": request.data.get("pto_hours"),
         }
 
-        send_message_to_topic('dashboard-queue', dashboard_payload, 'POST')
+        message_id = send_message_to_topic(
+            'timelog-processing-queue',
+            json.dumps(message_body),
+            'POST'
+        )
 
         return Response(
             {
