@@ -224,24 +224,32 @@ class SubmitTimeLogView(APIView):
 
 class EmployeeTimeLogsView(APIView):
     def get(self, *args, **kwargs):
-        # Make sure the incoming request has user data
+        # Ensure the request has user data and role.
         if self.request.user is None or self.request.user.employee.role is None:
             return Response(
-                {
-                    "message": "Request data is missing user or user role."
-                },
-                status=400,
+                {"message": "Request data is missing user or user role."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         role = self.request.user.employee.role
-        employee_id = self.request.user.employee.id
+        current_employee = self.request.user.employee
+
+        # Build the list of employee IDs.
+        if role == "HR":
+            # HR sees all employees.
+            employee_ids = list(Employee.objects.all().values_list('id', flat=True))
+        elif role == "Manager":
+            # Manager sees employees managed by them.
+            employee_ids = list(Employee.objects.filter(manager=current_employee).values_list('id', flat=True))
+        else:
+            # Regular employee sees only their own timelogs.
+            employee_ids = [current_employee.id]
+
         queue_data = {
             "role": role,
-            "employee_id": employee_id
+            "employee_ids": employee_ids,
         }
 
-        # Send data to queue for further processing in TimeLog Management Service
-        """FIXME Update the queue name to be an environment variable"""
         message_id = send_message_to_topic('employee_timelog_list_queue', queue_data, 'GET')
 
         return Response(
@@ -249,10 +257,8 @@ class EmployeeTimeLogsView(APIView):
                 "message": "Time log list request successfully sent to the queue for processing.",
                 "message_id": message_id,
             },
-            status=200,
+            status=status.HTTP_200_OK,
         )
-
-
 class PTOUpdateView(APIView):
     permission_classes = [IsManagerOrHR]
 
@@ -405,3 +411,4 @@ class BulkPTOView(APIView):
         except Exception as e:
             logger.exception(f"Error processing Bulk PTO update: {str(e)}")
             return Response({"error": f"Error processing Bulk PTO update: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
