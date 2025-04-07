@@ -378,20 +378,16 @@ class IsManagerOfEmployee(permissions.BasePermission):
 class TimeLogUpdateView(APIView):
     permission_classes = [IsAuthenticated, IsHR | IsManagerOfEmployee]
 
-    def patch(self, request, timelog_id):
-        # Check the incoming request data contains timelog data.
+    def patch(self, request, pk):
         data = request.data
         if not data:
             return Response({"error": "TimeLog data is required."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Prepare data to be sent to queue
         queue_data = {
-            "timelog_id": timelog_id,
+            "timelog_id": pk,
             "data": data,
         }
 
-        # Send data to queue for further processing in TimeLog Update Service
-        """FIXME Update the queue name to be an environment variable"""
         message_id = send_message_to_topic('timelog_update_queue', queue_data, 'PATCH')
 
         return Response(
@@ -401,6 +397,7 @@ class TimeLogUpdateView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+
 
 class BulkPTOView(APIView):
     permission_classes = [IsHR]
