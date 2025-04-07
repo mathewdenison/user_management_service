@@ -247,8 +247,11 @@ class EmployeeTimeLogsView(APIView):
             # HR sees all employees.
             employee_ids = list(Employee.objects.all().values_list('id', flat=True))
         elif role == "Manager":
-            # Manager sees employees managed by them.
-            employee_ids = list(Employee.objects.filter(manager=current_employee).values_list('id', flat=True))
+            # Retrieve all employees that report to this manager using the reverse relation,
+            # then include the manager's own ID.
+            subordinate_ids = list(current_employee.employee_set.all().values_list('id', flat=True))
+            subordinate_ids.append(current_employee.id)
+            employee_ids = subordinate_ids
         else:
             # Regular employee sees only their own timelogs.
             employee_ids = [current_employee.id]
@@ -267,6 +270,7 @@ class EmployeeTimeLogsView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+
 class PTOUpdateView(APIView):
     permission_classes = [IsManagerOrHR]
 
