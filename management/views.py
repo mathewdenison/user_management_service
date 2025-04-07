@@ -201,10 +201,17 @@ class SubmitTimeLogView(APIView):
         if not request.data:
             return Response({"message": "Request data cannot be empty."}, status=400)
 
+        # Build the message body using all keys from request.data
         message_body = {
-            "employee": request.data.get("employee"),  # Ensure this matches what processing service expects
+            "employee": request.data.get("employee"),
             "week_start_date": request.data.get("week_start_date"),
-            "pto_hours": request.data.get("pto_hours"),
+            "week_end_date": request.data.get("week_end_date"),
+            "monday_hours": request.data.get("monday_hours"),
+            "tuesday_hours": request.data.get("tuesday_hours"),
+            "wednesday_hours": request.data.get("wednesday_hours"),
+            "thursday_hours": request.data.get("thursday_hours"),
+            "friday_hours": request.data.get("friday_hours"),
+            "pto_hours": request.data.get("pto_hours")
         }
 
         message_id = send_message_to_topic(
@@ -220,6 +227,7 @@ class SubmitTimeLogView(APIView):
             },
             status=200,
         )
+
 
 
 class EmployeeTimeLogsView(APIView):
