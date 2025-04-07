@@ -2,7 +2,7 @@ from django.urls import path
 from .views import (
     EmployeeListView, login_view, logout_view, csrf_setup, SubmitTimeLogView,
     EmployeeTimeLogsView, PTOUpdateView, TimeLogListView, create_employee_page,
-    GetPTOView, CurrentWeekView, verify_token, BulkPTOView
+    GetPTOView, CurrentWeekView, verify_token, BulkPTOView, TimeLogUpdateView
 )
 
 urlpatterns = [
@@ -21,4 +21,5 @@ urlpatterns = [
     path('timelogs/<int:pk>/', TimeLogListView.as_view(), name='update-timelog'),
     path('verify-token/', verify_token, name='verify_token'),
     path('bulk_pto/', BulkPTOView.as_view(), name='bulk-pto'),
+    path('timelogs/<int:pk>/', TimeLogUpdateView.as_view(), name='update-timelog'),
 ]
