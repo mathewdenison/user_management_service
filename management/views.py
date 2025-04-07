@@ -389,7 +389,7 @@ class TimeLogUpdateView(APIView):
         }
 
         message_id = send_message_to_topic('timelog_update_queue', queue_data, 'PATCH')
-
+        logger.info(f"Sending patch to timelog_update_queue for TimeLogUpdateView")
         return Response(
             {
                 "message": "TimeLog update request successfully sent to the queue for processing.",
