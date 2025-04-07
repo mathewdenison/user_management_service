@@ -21,5 +21,5 @@ urlpatterns = [
     path('timelogs/<int:pk>/', TimeLogListView.as_view(), name='update-timelog'),
     path('verify-token/', verify_token, name='verify_token'),
     path('bulk_pto/', BulkPTOView.as_view(), name='bulk-pto'),
-    path('timelogs/<int:pk>/', TimeLogUpdateView.as_view(), name='update-timelog'),
+    path('timelogs/update/<int:pk>/', TimeLogUpdateView.as_view(), name='update-timelog'),
 ]
