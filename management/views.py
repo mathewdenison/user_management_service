@@ -1,11 +1,10 @@
 import json
 from django.utils import timezone
-from rest_framework import generics, permissions
+from rest_framework import permissions
 from rest_framework.permissions import BasePermission
 from rest_framework.views import APIView
 from management.models import Employee
 from management.serializers import EmployeeSerializer
-from rest_framework.decorators import api_view
 from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.permissions import AllowAny
@@ -78,7 +77,7 @@ def login_view(request):
                         {
                             "message": f"You are logged in as {username}",
                             "role": employee.role,
-                            "employee_id": employee.id,
+                            "employee_id": employee.employee_id,
                             "auth_token": token.key,
                             "csrf_token": csrf_token,  # Send the cookie token in the response
                         },
@@ -161,10 +160,10 @@ class EmployeeListView(APIView):
         logger.info(f"In Employee List View get")
         if request.user.employee.role == 'HR':
             # HR sees all management in the organization
-            employees = Employee.objects.all()
+            employees = Employee.get_all()
         elif request.user.employee.role == 'Manager':
             # Managers see only management within their department
-            employees = Employee.objects.filter(department=request.user.employee.department)
+            employees = Employee.get_by_department(request.user.employee.department)
         else:
             return Response({"error": "You do not have access to this resource."}, status=403)
 
@@ -245,16 +244,17 @@ class EmployeeTimeLogsView(APIView):
         # Build the list of employee IDs.
         if role == "HR":
             # HR sees all employees.
-            employee_ids = list(Employee.objects.all().values_list('id', flat=True))
+            employee_ids = list(Employee.get_all().values_list('id', flat=True))
         elif role == "Manager":
             # Retrieve all employees that report to this manager using the reverse relation,
             # then include the manager's own ID.
-            subordinate_ids = list(current_employee.employee_set.all().values_list('id', flat=True))
-            subordinate_ids.append(current_employee.id)
+            subordinates = Employee.get_subordinates(current_employee.employee_id)
+            subordinate_ids = [sub.employee_id for sub in subordinates]
+            subordinate_ids.append(current_employee.employee_id)  # manager sees themself too
             employee_ids = subordinate_ids
         else:
             # Regular employee sees only their own timelogs.
-            employee_ids = [current_employee.id]
+            employee_ids = [current_employee.employee_id]
 
         queue_data = {
             "role": role,
@@ -279,9 +279,8 @@ class PTOUpdateView(APIView):
         if self.request.user.employee.role != 'HR':
             return Response({"error": "Only HR can update PTO balance."}, status=403)
 
-        try:
-            employee = Employee.objects.get(pk=employee_id)
-        except Employee.DoesNotExist:
+        employee = Employee.get_by_id(employee_id)
+        if not employee:
             return Response({"error": "Employee not found."}, status=404)
 
         new_balance = request.data.get("pto_balance")

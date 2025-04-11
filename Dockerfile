@@ -1,17 +1,24 @@
-# Python Image
+# Use a Python base image
 FROM python:3.8
 
-# Set the working directory in the container to /app
+# Create a working directory
 WORKDIR /app
 
-# Copy requirements.txt into the app directory
+# Copy requirements and install
 COPY requirements.txt .
-
-# Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# This is to copy your current directory (with the source code) into the Docker image
+# Copy your entire project code into /app
 COPY . /app
 
-# The command to run your application when the docker container starts
+# Copy the entrypoint script into the container
+COPY entrypoint.sh /app/entrypoint.sh
+
+# Make the entrypoint script executable
+RUN chmod +x /app/entrypoint.sh
+
+# Set the entrypoint to our script
+ENTRYPOINT ["/app/entrypoint.sh"]
+
+# The command to run the Django app after migrations
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
