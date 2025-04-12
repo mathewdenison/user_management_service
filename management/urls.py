@@ -4,6 +4,7 @@ from .views import (
     EmployeeTimeLogsView, PTOUpdateView, TimeLogListView, create_employee_page,
     GetPTOView, CurrentWeekView, verify_token, BulkPTOView, TimeLogUpdateView, create_employee_view
 )
+import uuid
 
 urlpatterns = [
     path('login/', login_view, name='login'),  # Login route
@@ -12,7 +13,7 @@ urlpatterns = [
     path('csrf/', csrf_setup, name='csrf'),
     path('csrf_setup/', csrf_setup, name='csrf_setup'),
     path('create_employee/', create_employee_page, name='create_employee'),
-    path('employees/<int:employee_id>/submit_timesheet/', SubmitTimeLogView.as_view(), name='submit-timelog'),
+    path('employees/<uuid:employee_id>/submit_timesheet/', SubmitTimeLogView.as_view(), name='submit-timelog'),
     path('employees/timelogs/', EmployeeTimeLogsView.as_view(), name='employee-timelogs'),
     path('employees/<int:employee_id>/pto/', PTOUpdateView.as_view(), name='update-pto'),
     path('employees/<int:employee_id>/get_timesheet/', TimeLogListView.as_view(), name='get-timelog'),
