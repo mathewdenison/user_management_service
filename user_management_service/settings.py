@@ -41,16 +41,16 @@ CORS_ALLOW_METHODS = [
 
 # --- Applications ---
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
+    #'django.contrib.admin',
+    #'django.contrib.auth',
+    #'django.contrib.contenttypes',
+    #'django.contrib.sessions',
+    #'django.contrib.messages',
     'django.contrib.staticfiles',
     'corsheaders',
     'management',
     'rest_framework',
-    'rest_framework.authtoken',
+    #'rest_framework.authtoken',
 ]
 
 # --- Middleware ---
