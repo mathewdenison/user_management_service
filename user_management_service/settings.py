@@ -59,12 +59,8 @@ WSGI_APPLICATION = 'user_management_service.wsgi.application'
 # --- Database ---
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'timesheetdb',
-        'USER': 'postgres',
-        'PASSWORD': 'timesheetpassword',
-        'HOST': "database-2-instance-1.cfoqm8o00hyq.us-east-2.rds.amazonaws.com",
-        'PORT': "5432",
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': ':memory:'  # or something minimal
     }
 }
 # --- Password validation ---
