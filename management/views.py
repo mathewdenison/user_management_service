@@ -1,4 +1,6 @@
 import json
+import uuid
+
 from django.utils import timezone
 from rest_framework import permissions
 from rest_framework.permissions import BasePermission
@@ -39,6 +41,18 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 logger.propagate = False
 
+def authenticate_employee(username: str, password: str):
+    """
+    Returns an Employee object if the username/password are valid,
+    else returns None.
+    """
+    employee = Employee.get_by_username(username)
+    if not employee:
+        return None
+    # check password
+    if employee.verify_password(password):
+        return employee
+    return None
 
 @api_view(['GET', 'POST'])
 @permission_classes([AllowAny])
@@ -48,49 +62,52 @@ def login_view(request):
         logger.info("LOGIN VIEW REACHED")
         username = request.data.get('username')
         password = request.data.get('password')
-
         logger.info(f"Username: {username}, Password: {password}")
 
-        user = authenticate(request, username=username, password=password)
-        logger.info(f"User authenticated")
-        if user is not None:  # Check if the user exists
-            logger.info(f"User is not none")
-            token, _ = Token.objects.get_or_create(
-                user=user)
-            if user.is_superuser:  # The user is a superuser
-                logger.info(f"User is a superuser")
-                login(request, user)
-                logger.info(f"Logged in")
+        # Use your custom Firestore-based auth
+        employee = authenticate_employee(username, password)
+        logger.info("Employee authenticated? %s", bool(employee))
+
+        if employee is not None:  # Means valid username/password
+            # For example, create a fake token (UUID) or implement your own token logic
+            token = str(uuid.uuid4())
+
+            # If you previously had "superuser" logic, you could store it in employee.role or a separate field:
+            if employee.role == 'Superuser':
+                logger.info("Employee is superuser")
+                # Possibly do a redirect or just return a JSON
                 return redirect('create_employee')
-            if hasattr(user, 'employee'):  # Ensure User has an Employee profile
-                logger.info(f"User has attribute Employee")
-                if user.employee.role in ['Manager', 'HR', 'Employee']:
-                    logger.info(f"User is a Manager, HR, or Employee")
-                    login(request, user)  # Log the user in (create session)
-                    logger.info(f"Logged in")
-                    # Retrieve CSRF token from the cookies
-                    csrf_token = get_token(request)
-                    logger.info("%s the csrf token", csrf_token)
-                    logger.info(f"Employee: {user.employee}")
-                    employee = user.employee
-                    return JsonResponse(
-                        {
-                            "message": f"You are logged in as {username}",
-                            "role": employee.role,
-                            "employee_id": employee.employee_id,
-                            "auth_token": token.key,
-                            "csrf_token": csrf_token,  # Send the cookie token in the response
-                        },
-                        status=200
-                    )
-                return JsonResponse({"error": "Access Denied: You do not have the required role."}, status=403)
-            return JsonResponse({"error": "Invalid credentials"}, status=401)
-        return JsonResponse({"error": "Unable to find user"}, status=400)
-    elif request.method == 'GET':  # Handling for GET requests
-        # In this case, simply render the login form
+
+            # If the employee has a recognized role
+            if employee.role in ['Manager', 'HR', 'Employee']:
+                logger.info(f"Employee is a {employee.role}")
+                # If you still want a session-based approach, you can set session data:
+                # request.session['employee_id'] = employee.employee_id
+                # (Only works if you still have SessionMiddleware, but that's optional.)
+
+                csrf_token = get_token(request)  # If you still have CSRF enabled
+                logger.info("%s the csrf token", csrf_token)
+
+                # Return a JSON response with similar structure
+                return JsonResponse(
+                    {
+                        "message": f"You are logged in as {username}",
+                        "role": employee.role,
+                        "employee_id": employee.employee_id,
+                        "auth_token": token,
+                        "csrf_token": csrf_token,  # just for example
+                    },
+                    status=200
+                )
+                # Or if the role isn't recognized as 'Manager', 'HR', or 'Employee'
+            return JsonResponse({"error": "Access Denied: You do not have the required role."}, status=403)
+        else:
+            return JsonResponse({"error": "Unable to find user or invalid password"}, status=400)
+
+    elif request.method == 'GET':
+        # In this case, simply render the login form template (if you still use templates)
         return render(request, 'management/login.html')
     else:
-        # In case of any other HTTP methods, return not allowed response
         return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 
