@@ -12,7 +12,23 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'insecure-default-key')  # Use a str
 DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = ['*']
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = False
+
+CORS_ALLOWED_ORIGINS = [
+    "https://frontend-app-625470861295.us-central1.run.app"
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_METHODS = [
+    "GET",
+    "POST",
+    "PUT",
+    "PATCH",
+    "DELETE",
+    "OPTIONS",
+]
+
 
 CORS_ALLOW_METHODS = [
     "GET",
