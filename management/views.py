@@ -27,7 +27,6 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 import os
 from passlib.context import CryptContext
-from django.contrib import messages
 
 logger = logging.getLogger(__name__)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -63,19 +62,20 @@ def create_employee_page(request):
     if request.method == "POST":
         user_form = EmployeeUserForm(request.POST)
         employee_form = EmployeeForm(request.POST)
+
         if user_form.is_valid() and employee_form.is_valid():
-            # Save the user (assuming user_form is a ModelForm for Django User)
+            # Save the user portion (Firestore-based or removed entirely if no Django User is used)
             user = user_form.save()
 
-            # Then save the Firestore-based Employee (EmployeeForm is a plain Form)
-            # If your form has a .save() method that calls Firestore, do:
-            employee_form.cleaned_data['user'] = user  # or user.id, whichever you need
+            # Then attach the user to the Employee form data if needed
+            employee_form.cleaned_data['user'] = user
             emp = employee_form.save()
 
-            messages.success(request, "Employee created successfully!")
-            return redirect('create_employee')  # or wherever you want
+            # No Django messages used; just redirect or return JSON/HTML as you prefer
+            return redirect('create_employee')  # or any named URL
         else:
-            messages.error(request, "Please fix the errors below.")
+            # If invalid, we’ll fall through and re-render the template below
+            pass
     else:
         user_form = EmployeeUserForm()
         employee_form = EmployeeForm()
