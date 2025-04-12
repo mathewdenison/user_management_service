@@ -13,7 +13,7 @@ from .utils import send_message_to_topic
 from django.middleware.csrf import get_token
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
-from .forms import EmployeeUserForm, EmployeeForm
+from .forms import EmployeeForm
 from datetime import timedelta
 import logging
 from google.cloud import logging as cloud_logging
@@ -204,24 +204,6 @@ def logout_view(request):
     logger.info(f"CSRF Token Expected: {get_token(request)}")
 
     return Response({"message": "You have been logged out successfully."}, status=200)
-
-
-@csrf_exempt
-def create_employee_page(request):
-    if request.method == "POST":
-        user_form = EmployeeUserForm(request.POST)
-        employee_form = EmployeeForm(request.POST)
-        if user_form.is_valid() and employee_form.is_valid():
-            user = user_form.save()
-            employee = employee_form.save(commit=False)
-            employee.user = user
-            employee.save()
-            return redirect('create_employee')
-    else:
-        user_form = EmployeeUserForm()
-        employee_form = EmployeeForm()
-    return render(request, 'management/create_employee.html', {'user_form': user_form, 'employee_form': employee_form})
-
 
 def csrf(request):
     return JsonResponse({"csrfToken": get_token(request)})
