@@ -22,12 +22,12 @@ from google.cloud import logging as cloud_logging
 from rest_framework import status
 from dotenv import load_dotenv
 from rest_framework.response import Response
-from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 import os
 from passlib.context import CryptContext
+from django.contrib import messages
 
 logger = logging.getLogger(__name__)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -58,19 +58,36 @@ def authenticate_employee(username: str, password: str):
         return employee
     return None
 
+@csrf_exempt
+def create_employee_page(request):
+    if request.method == "POST":
+        user_form = EmployeeUserForm(request.POST)
+        employee_form = EmployeeForm(request.POST)
+        if user_form.is_valid() and employee_form.is_valid():
+            # Save the user (assuming user_form is a ModelForm for Django User)
+            user = user_form.save()
+
+            # Then save the Firestore-based Employee (EmployeeForm is a plain Form)
+            # If your form has a .save() method that calls Firestore, do:
+            employee_form.cleaned_data['user'] = user  # or user.id, whichever you need
+            emp = employee_form.save()
+
+            messages.success(request, "Employee created successfully!")
+            return redirect('create_employee')  # or wherever you want
+        else:
+            messages.error(request, "Please fix the errors below.")
+    else:
+        user_form = EmployeeUserForm()
+        employee_form = EmployeeForm()
+
+    return render(request, 'management/create_employee.html', {
+        'user_form': user_form,
+        'employee_form': employee_form,
+    })
+
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def create_employee_view(request):
-    """
-    Creates a new Employee in Firestore with a hashed password.
-    Expects JSON like: {
-        "username": "...",
-        "password": "...",
-        "name": "...",
-        "role": "...",
-        "department": "..."
-    }
-    """
     data = request.data
 
     username = data.get("username")
