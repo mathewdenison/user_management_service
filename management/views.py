@@ -14,7 +14,6 @@ from django.middleware.csrf import get_token
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from .forms import EmployeeUserForm, EmployeeForm
-from django.contrib.auth.decorators import login_required
 from datetime import timedelta
 import logging
 from google.cloud import logging as cloud_logging
@@ -219,7 +218,6 @@ def logout_view(request):
     return Response({"message": "You have been logged out successfully."}, status=200)
 
 
-@login_required
 @csrf_exempt
 def create_employee_page(request):
     if request.method == "POST":
