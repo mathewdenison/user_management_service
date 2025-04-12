@@ -58,30 +58,18 @@ def authenticate_employee(username: str, password: str):
 @csrf_exempt
 def create_employee_page(request):
     if request.method == "POST":
-        user_form = EmployeeUserForm(request.POST)
         employee_form = EmployeeForm(request.POST)
 
-        if user_form.is_valid() and employee_form.is_valid():
-            # Save the user portion (Firestore-based or removed entirely if no Django User is used)
-            user = user_form.save()
-
-            # Then attach the user to the Employee form data if needed
-            employee_form.cleaned_data['user'] = user
+        if employee_form.is_valid():
             emp = employee_form.save()
-
-            # No Django messages used; just redirect or return JSON/HTML as you prefer
-            return redirect('create_employee')  # or any named URL
-        else:
-            # If invalid, we’ll fall through and re-render the template below
-            pass
+            return redirect('create_employee')
     else:
-        user_form = EmployeeUserForm()
         employee_form = EmployeeForm()
 
     return render(request, 'management/create_employee.html', {
-        'user_form': user_form,
         'employee_form': employee_form,
     })
+
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
