@@ -7,7 +7,6 @@ from rest_framework.permissions import BasePermission
 from rest_framework.views import APIView
 from management.models import Employee
 from management.serializers import EmployeeSerializer
-from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.permissions import AllowAny
 from .utils import send_message_to_topic
@@ -216,7 +215,7 @@ def verify_token(request):
 def logout_view(request):
     logger.info(f"CSRF Token from Client: {request.headers.get('X-CSRFToken')}")
     logger.info(f"CSRF Token Expected: {get_token(request)}")
-    logout(request)  # Destroy the user session
+
     return Response({"message": "You have been logged out successfully."}, status=200)
 
 
