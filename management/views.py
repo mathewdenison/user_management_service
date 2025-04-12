@@ -27,6 +27,10 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 import os
+from passlib.context import CryptContext
+
+logger = logging.getLogger(__name__)
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 load_dotenv()
 
@@ -53,6 +57,69 @@ def authenticate_employee(username: str, password: str):
     if employee.verify_password(password):
         return employee
     return None
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def create_employee_view(request):
+    """
+    Creates a new Employee in Firestore with a hashed password.
+    Expects JSON like: {
+        "username": "...",
+        "password": "...",
+        "name": "...",
+        "role": "...",
+        "department": "..."
+    }
+    """
+    data = request.data
+
+    username = data.get("username")
+    password = data.get("password")
+    name = data.get("name")
+    role = data.get("role", "Employee")         # default to Employee if not specified
+    department = data.get("department", "")
+    manager_id = data.get("manager_id", None)
+
+    # Basic validation
+    if not username or not password or not name:
+        return Response({"error": "username, password, and name are required"},
+                        status=status.HTTP_400_BAD_REQUEST)
+
+    # Check if username already exists in Firestore
+    existing = Employee.get_by_username(username)
+    if existing:
+        return Response({"error": "Username already taken."}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Generate a doc ID
+    employee_id = str(uuid.uuid4())
+
+    # Hash the password
+    hashed_password = pwd_context.hash(password)
+
+    # Create the Employee object
+    emp = Employee(
+        employee_id=employee_id,
+        user_id="",  # or if you want to store some user id
+        name=name,
+        role=role,
+        department=department,
+        manager_id=manager_id,
+        username=username,
+        hashed_password=hashed_password,
+    )
+    emp.save()  # Writes to Firestore
+
+    return Response(
+        {
+            "message": "Employee created successfully.",
+            "employee_id": emp.employee_id,
+            "username": emp.username,
+            "role": emp.role,
+            "department": emp.department,
+            "manager_id": emp.manager_id,
+        },
+        status=status.HTTP_201_CREATED
+    )
 
 @api_view(['GET', 'POST'])
 @permission_classes([AllowAny])

@@ -9,3 +9,4 @@ psycopg2
 firestore
 django-cors-headers==4.4.0
 uuid
+passlib
