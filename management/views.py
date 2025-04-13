@@ -195,14 +195,11 @@ def verify_token(request):
     return JsonResponse({"message": "Token is valid."}, status=200)
 
 
-# Logout View
 @csrf_exempt
 @permission_classes([AllowAny])
 @api_view(['POST'])
 def logout_view(request):
-    logger.info(f"CSRF Token from Client: {request.headers.get('X-CSRFToken')}")
-    logger.info(f"CSRF Token Expected: {get_token(request)}")
-
+    logger.info("Received logout request")
     return Response({"message": "You have been logged out successfully."}, status=200)
 
 def csrf(request):
