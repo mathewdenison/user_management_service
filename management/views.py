@@ -344,7 +344,7 @@ class PTOUpdateView(APIView):
         if self.request.user.employee.role != 'HR':
             return Response({"error": "Only HR can update PTO balance."}, status=403)
 
-        employee = Employee.get_by_id(employee_id)
+        employee = Employee.get_by_id(str(employee_id))
         if not employee:
             return Response({"error": "Employee not found."}, status=404)
 
