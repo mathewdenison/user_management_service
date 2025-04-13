@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from corsheaders.defaults import default_headers
 
 # Load .env file values (useful locally and during dev/test)
 load_dotenv()
@@ -30,13 +31,8 @@ CORS_ALLOW_METHODS = [
 ]
 
 
-CORS_ALLOW_METHODS = [
-    "GET",
-    "POST",
-    "PUT",
-    "PATCH",
-    "DELETE",
-    "OPTIONS",
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "x-username",  # <- your custom header
 ]
 
 # --- Applications ---
