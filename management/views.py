@@ -309,7 +309,7 @@ class EmployeeTimeLogsView(APIView):
         # Build the list of employee IDs.
         if role == "HR":
             # HR sees all employees.
-            employee_ids = list(Employee.get_all().values_list('id', flat=True))
+            employee_ids = [emp.employee_id for emp in Employee.get_all()]
         elif role == "Manager":
             # Retrieve all employees that report to this manager using the reverse relation,
             # then include the manager's own ID.
