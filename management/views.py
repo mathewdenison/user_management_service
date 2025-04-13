@@ -467,11 +467,8 @@ class BulkPTOView(APIView):
     permission_classes = [IsHR]
 
     def post(self, request, *args, **kwargs):
-        if not request.data:
-            return Response({"error": "Request data cannot be empty."}, status=status.HTTP_400_BAD_REQUEST)
-
         try:
-            message_body = request.data
+            message_body = request.data or {"trigger": True}  # 👈 Fallback for safety
 
             message_id = send_message_to_topic('bulk_pto_queue', json.dumps(message_body), 'POST')
 
@@ -481,7 +478,11 @@ class BulkPTOView(APIView):
                 "message": "Bulk PTO update request successfully sent to the queue for processing.",
                 "message_id": message_id,
             }, status=status.HTTP_200_OK)
+
         except Exception as e:
             logger.exception(f"Error processing Bulk PTO update: {str(e)}")
-            return Response({"error": f"Error processing Bulk PTO update: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {"error": f"Error processing Bulk PTO update: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
